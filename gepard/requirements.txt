@@ -1,0 +1,7 @@
+importlib-resources
+importlib-metadata
+numpy>=1.18.5
+scipy
+matplotlib
+pandas
+iminuit
