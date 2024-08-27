@@ -262,9 +262,9 @@ class NeuralFitter(Fitter):
         for k in range(1, self.nbatch+1):
             for epoch in range(self.batchlen):
                 self.optimizer.zero_grad()
-                #cff_pred_1 = self.theory.nn_model(x_train_standardized)
+                #cff_pred_1 = self.theory.nn_model(x_train_standardized) 
                 #print("cff_pred 1", cff_pred_1)
-                cff_pred = self.theory.all_cffs(x_train)
+                cff_pred = self.theory.all_cffs(x_train) 
                 #print("cff_pred 2", cff_pred-cff_pred_1)
                 #print("END")
                 loss = self.criterion(cff_pred, y_train)
@@ -280,7 +280,7 @@ class NeuralFitter(Fitter):
                 self.history.append(float(loss))
                 loss.backward()
                 self.optimizer.step()
-            #test_cff_pred = self.theory.nn_model(x_test_standardized)
+            #test_cff_pred = self.theory.nn_model(x_test_standardized)  
             test_cff_pred = self.theory.all_cffs(x_test)
             test_loss = float(self.criterion(test_cff_pred, y_test))
             print("\nEpoch {:3d}: train error = {:.4f} test error = {:.4f} ".format(

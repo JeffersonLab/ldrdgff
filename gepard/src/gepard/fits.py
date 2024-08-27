@@ -3,6 +3,7 @@
 import numpy as np
 
 from . import cff, data, dvcs, eff, gpd
+from gepard.kinematics import prepare # Temporal
 
 GLOpoints = data.dset[31][12:] + data.dset[8] + data.dset[29]
 
@@ -142,7 +143,11 @@ pts_AFKM12 = H1ZEUS
 
 
 class KM15(eff.KellyEFF, gpd.PWNormGPD, cff.HybridFreePoleCFF, dvcs.BM10tw2):  # noqa: D101, E501
-    pass
+    def prepare(self, pt: data.DataPoint) -> None:
+        """Pre-calculate GPD-independent kinematical constants and functions."""
+        prepare(pt)  # Call the prepare function from kinematics.py
+
+    pass 
 
 
 th_KM15 = KM15()
