@@ -1,0 +1,81 @@
+id = 261
+editor = MH
+
+## data were obtained from phi fitting
+
+### Experiment
+
+collaboration = CLAS
+process = ep2epgamma
+exptype = fixed target
+year = 2025
+reference = Priv comunication
+inspiretex = Priv comunication
+
+
+### Scattering Process
+
+frame = Trento
+
+in1particle = em
+in1energy = 11
+in1energyunit = GeV
+in1polarizationvector = L
+in1polarization = +1
+
+in2particle = p
+
+out1particle = em
+out2particle = p
+out3particle = gamma
+
+
+### Observable 
+# A_{LU}
+
+
+y1name = ALU
+y1namelong = Beam Spin Asymmetry
+y1unit = 1
+y1value = column4
+y1errorstatistic = column5 
+y1errorsystematic = column6 
+# only statistical error is given to us so syst error is 0
+
+### x-axes
+
+x1name = xB
+x1unit = 1
+x1value = column2
+
+x2name = Q2
+x2unit = GeV^2
+x2value = column1
+
+x3name = tm
+x3unit = GeV^2
+x3value = column3
+
+x4name = FTn
+x4unit = 1
+x4value = -1
+
+
+### Data
+#
+#  CLAS 2023 ALU
+#                                       error
+#  Q2      xB      -t      val     errstat   errsyst
+#################################################################
+1.70482 0.11924 0.70807  14.880 15.962     0.000
+1.92428 0.21290 0.79784   0.063  0.286     0.000
+1.68406 0.11481 0.32030   0.328  0.322     0.000
+1.96658 0.18729 0.33239   0.687  3.391     0.000
+1.62846 0.10840 0.18806  -0.825  1.909     0.000
+1.97822 0.15907 0.19850  81.107 34.935     0.000
+2.89131 0.21358 0.85765  14.223 12.787     0.000
+4.01413 0.37889 1.05297   0.032  0.198     0.000
+2.70265 0.18294 0.40095   0.175  0.503     0.000
+3.62497 0.29778 0.41792   6.329  4.863     0.000
+2.56688 0.16542 0.22138 -33.185 51.202     0.000
+3.26336 0.23598 0.24356   4.780 14.765     0.000

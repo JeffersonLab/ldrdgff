@@ -200,6 +200,9 @@ class CustomLoss(torch.nn.Module):
         return torch.mean(torch.square((torch.stack(preds) - obs_true[:, 0])/obs_true[:, 1]))
 
 
+#from gepard import data
+#from gepard.data import DataSet
+
 class NeuralFitter(Fitter):
     """Fits using PyTorch library.
 
@@ -248,18 +251,24 @@ class NeuralFitter(Fitter):
                 q2in = self.theory.q2in)
         self.theory.nn_mean, self.theory.nn_std = self.theory.get_standard(x_train)
         
+        # Store x_test and y_test in the instance for later use
+        self.x_test = x_test   # <-- ADDED: to call after training
+        self.y_test = y_test   # <-- ADDED: to call after training
         
         x_train_standardized = self.theory.standardize(x_train,
                 self.theory.nn_mean, self.theory.nn_std)
         x_test_standardized = self.theory.standardize(x_test,
                 self.theory.nn_mean, self.theory.nn_std)
+                
         if new_net:
             self.theory.nn_model, self.optimizer = self.theory.build_net()
             self.history = []
+            self.test_history = []  # <-- ADDED: Test loss history
+
         mem_state_dict = self.theory.nn_model.state_dict()
         mem_err = 100  # large init error, almost certain to be bettered
         early_stop_counter = 1
-        for k in range(1, self.nbatch+1):
+        for k in range(1, self.nbatch+1):       
             for epoch in range(self.batchlen):
                 self.optimizer.zero_grad()
                 #cff_pred_1 = self.theory.nn_model(x_train_standardized) 
@@ -268,6 +277,7 @@ class NeuralFitter(Fitter):
                 #print("cff_pred 2", cff_pred-cff_pred_1)
                 #print("END")
                 loss = self.criterion(cff_pred, y_train)
+
                 if self.regularization == 'L1':
                     lx_norm = sum(torch.linalg.norm(p, 1)
                             for p in self.theory.nn_model.parameters())
@@ -276,13 +286,18 @@ class NeuralFitter(Fitter):
                             for p in self.theory.nn_model.parameters())
                 else:
                     lx_norm = 0
+
                 loss = loss + self.lx_lambda * lx_norm
-                self.history.append(float(loss))
+                self.history.append(float(loss))       # Save training loss
                 loss.backward()
                 self.optimizer.step()
-            #test_cff_pred = self.theory.nn_model(x_test_standardized)  
-            test_cff_pred = self.theory.all_cffs(x_test)
-            test_loss = float(self.criterion(test_cff_pred, y_test))
+
+                # Compute test loss every epoch (not just at the end of the batch)    
+                #test_cff_pred = self.theory.nn_model(x_test_standardized)  
+                test_cff_pred = self.theory.all_cffs(x_test)
+                test_loss = float(self.criterion(test_cff_pred, y_test))
+                self.test_history.append(test_loss)  # <-- ADDED: Save test loss
+
             print("\nEpoch {:3d}: train error = {:.4f} test error = {:.4f} ".format(
                 k*self.batchlen, self.history[-1], test_loss), end='')
             if test_loss < mem_err:
@@ -301,6 +316,7 @@ class NeuralFitter(Fitter):
                 else:
                     print('+', end='')
                     early_stop_counter += 1
+                    
         self.theory.nn_model.load_state_dict(mem_state_dict)
         self.theory.in_training = False
         return self.theory.nn_model, self.theory.nn_mean, self.theory.nn_std, mem_err

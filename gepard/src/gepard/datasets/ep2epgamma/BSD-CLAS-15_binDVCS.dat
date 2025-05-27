@@ -65,7 +65,7 @@ x4value = column4
 #
 # CLAS 2015 XLU
 #
-#xB      Q2    -t  phi     XLU  stat      syst
+#  xB      Q2    -t  phi     XLU  stat      syst
 ###########################################################
 table =
 0.185   1.62    0.11    9.53    0   0   0

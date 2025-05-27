@@ -1746,11 +1746,11 @@ def jbod(path=None, fmt='png', **kwargs):
     if isinstance(kwargs['points'], data.DataSet):
         kwargs['points'] = [kwargs['points']]
     for pts in kwargs['points']:
-        label = ' + '.join(set('%s-%s-%s' % (pt.collaboration,
-            str(pt.year)[-2:], pt.observable) for pt in pts))
+        #label = ' + '.join(set('%s-%s-%s' % (pt.collaboration,
+        #    str(pt.year)[-2:], pt.observable) for pt in pts))
         # x-coordinate is in data frame, while y-coordinate is in 0.0-1.0 frame
-        ax.text(n, 0.9, label, transform=matplotlib.transforms.blended_transform_factory(
-            ax.transData, ax.transAxes))
+        #ax.text(n, 0.9, label, transform=matplotlib.transforms.blended_transform_factory(
+        #    ax.transData, ax.transAxes))
         for pt in pts:
             pt.npt = n
             n += 1
@@ -1915,7 +1915,7 @@ def CFFt(cffs=['ImH', 'ReH'], path=None, fmt='png', **kwargs):
     fig = plt.figure(figsize=(12,4*len(cffs)))
     #fig.suptitle(title)
     # Define abscissas
-    tmvals = np.linspace(0.05, 0.55, 10) # right panel
+    tmvals = np.linspace(0.05, 0.7, 10) # right panel
     # ordinates
     #ylims = {'ImH': (-4.3, 35), 'ReH': (-6.5, 8),
     # Plot panels
@@ -1923,9 +1923,9 @@ def CFFt(cffs=['ImH', 'ReH'], path=None, fmt='png', **kwargs):
         cff = cffs[n]
         # smaller x
         ax = fig.add_subplot(len(cffs), 2, 2*n+1)
-        panel(ax, xaxis='tm', xs=tmvals, kins={'observable':cff, 'xB':0.005, 'Q2':2.,
+        panel(ax, xaxis='tm', xs=tmvals, kins={'observable':cff, 'xB':0.1, 'Q2':2.,
            'units':{cff: 1},}, **kwargs)
-        ax.set_xlabel(constants.toTeX['tm'], fontsize=15)
+        ax.set_xlabel(constants.toTeX['tm'], fontsize=18)
         try:
             ax.set_ylabel(constants.toTeX['%s' % cff], fontsize=18)
         except KeyError:
@@ -1934,15 +1934,15 @@ def CFFt(cffs=['ImH', 'ReH'], path=None, fmt='png', **kwargs):
         if n == 0:
             ax.legend(loc='upper right')
             ax.legend().draw_frame(0)
-            ax.text(0.1, 0.18, r"$x_B = 0.005$", transform=ax.transAxes,
+            ax.text(0.35, 0.1, r"$x_B = 0.1$", transform=ax.transAxes,     #0.35, 0.91
                     fontsize=12)
-            # ax.text(0.1, 0.12, "$Q^2 = 4\\, {\\rm GeV}^2$", transform=ax.transAxes,
-                    # fontsize=12)
+            ax.text(0.35, 0.0, r"$Q^2 = 2\, {\rm GeV}^2$", transform=ax.transAxes,     #0.35, 0.82
+                    fontsize=12)
         # larger x
         ax = fig.add_subplot(len(cffs), 2, 2*n+2)
-        panel(ax, xaxis='tm', xs=tmvals, kins={'observable':cff, 'xB':0.1, 'Q2':4.,
+        panel(ax, xaxis='tm', xs=tmvals, kins={'observable':cff, 'xB':0.2, 'Q2':4.,
             'units':{cff: 1}}, **kwargs)
-        ax.set_xlabel(constants.toTeX['tm'], fontsize=15)
+        ax.set_xlabel(constants.toTeX['tm'], fontsize=18)
         try:
             ax.set_ylabel(constants.toTeX['%s' % cff], fontsize=18)
         except KeyError:
@@ -1951,10 +1951,10 @@ def CFFt(cffs=['ImH', 'ReH'], path=None, fmt='png', **kwargs):
         if n == 0:
             ax.legend(loc='upper right')
             ax.legend().draw_frame(0)
-            ax.text(0.35, 0.18, r"$x_B = 0.1$", transform=ax.transAxes,
+            ax.text(0.35, 0.1, r"$x_B = 0.2$", transform=ax.transAxes,     #0.35, 0.91
                     fontsize=12)
-            #ax.text(0.35, 0.10, r"$Q^2 = 4\, {\rm GeV}^2$", transform=ax.transAxes,
-            #        fontsize=12)
+            ax.text(0.35, 0.0, r"$Q^2 = 4\, {\rm GeV}^2$", transform=ax.transAxes,     #0.35, 0.82
+                    fontsize=12)
     fig.subplots_adjust(bottom=0.1)
     if path:
         fig.savefig(os.path.join(path, title+'.'+fmt), format=fmt)
@@ -1962,6 +1962,7 @@ def CFFt(cffs=['ImH', 'ReH'], path=None, fmt='png', **kwargs):
         fig.canvas.draw()
         #fig.show()
     return fig
+
 
 def CFF3(cffs=['ImH', 'ReH', 'ImE', 'ReE'],
         path=None, fmt='png', **kwargs):
@@ -1989,14 +1990,15 @@ def CFF3(cffs=['ImH', 'ReH', 'ImE', 'ReE'],
                     ticklabel.set_fontsize(16)
         if pn >= 2*(nrows-1):
             ax.set_xlabel(constants.toTeX['xixB'], fontsize=16)
-        if pn == 1:
-            leg = ax.legend(loc='lower right', handlelength=4.0)
+        if pn == 0: #1
+            leg = ax.legend(loc='upper right', handlelength=3.0)
+            #leg = ax.legend(loc='best', handlelength=3.0)
             #frame  = leg.get_frame()
             #frame.set_facecolor('0.90')    # set the frame face color to light gray
             for t in leg.get_texts():
-                t.set_fontsize(12)    # the legend text fontsize
+                t.set_fontsize(10)    # 12 the legend text fontsize
             for l in leg.get_lines():
-                l.set_linewidth(2.0)  # the legend line width
+                l.set_linewidth(1.0)  # 2.0 the legend line width
         if cff == 'ImHt':
             pass
             # ax.set_ylim(-0.5, 5)
@@ -2007,13 +2009,15 @@ def CFF3(cffs=['ImH', 'ReH', 'ImE', 'ReE'],
             # ax.yaxis.set_major_locator( matplotlib.ticker.MultipleLocator(3.)) 
             # ax.yaxis.set_minor_locator( matplotlib.ticker.MultipleLocator(1.)) 
         elif cff == 'ReE':
-            ax.yaxis.set_major_locator( matplotlib.ticker.MultipleLocator(10.)) 
-            ax.yaxis.set_minor_locator( matplotlib.ticker.MultipleLocator(2.)) 
+            ax.yaxis.set_major_locator( matplotlib.ticker.MultipleLocator(2.)) 
+            ax.yaxis.set_minor_locator( matplotlib.ticker.MultipleLocator(1.0)) 
         elif cff == 'ImEt':
             ax.yaxis.set_major_locator( matplotlib.ticker.MultipleLocator(20.)) 
             ax.yaxis.set_minor_locator( matplotlib.ticker.MultipleLocator(5.)) 
         elif cff == 'ImE':
-            ax.set_ylabel(constants.toTeX['{}'.format(cff)], fontsize=18, labelpad=-8)
+            #ax.set_ylabel(constants.toTeX['{}'.format(cff)], fontsize=18, labelpad=-8)
+            ax.yaxis.set_major_locator( matplotlib.ticker.MultipleLocator(5.)) 
+            ax.yaxis.set_minor_locator( matplotlib.ticker.MultipleLocator(1.)) 
 
     fig.subplots_adjust(hspace=0., wspace=0.25)
     if path:

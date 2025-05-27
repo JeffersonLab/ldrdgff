@@ -186,10 +186,17 @@ class NeuralModel(Model):
             std[0, dim] = 1 - 1e-7
         return mean, std
 
+    #def standardize(self, x, mean, std):
+     #   y = x - mean
+     #   y /= (std + 1e-7)
+     #   return y
+
     def standardize(self, x, mean, std):
-        y = x - mean
-        y /= (std + 1e-7)
-        return y
+        if not isinstance(x, torch.Tensor):
+            x = torch.tensor(x, dtype=torch.float32)
+        else:
+            x = x.clone().detach().float()
+        return (x - mean) / (std + 1e-7)
 
     def unstandardize(self, x, mean, std):
         y = x * (std + 1e-7)
@@ -233,8 +240,9 @@ class NeuralModel(Model):
             else:
                 input_layer = torch.hstack((xB, t))
             
-            x = self.standardize(torch.tensor(input_layer, dtype=torch.float32),
-                                    self.nn_mean, self.nn_std)
+            x = self.standardize(input_layer, self.nn_mean, self.nn_std)
+            #x = self.standardize(torch.tensor(input_layer, dtype=torch.float32),
+                                    #self.nn_mean, self.nn_std)
             
             self.all_cffs_val = self.nn_model(x)
             
@@ -249,8 +257,9 @@ class NeuralModel(Model):
                 input_layer = [pt.xB, pt.t, pt.Q2]
             else:
                 input_layer = [pt.xB, pt.t]        
-            x = self.standardize(torch.tensor(input_layer, dtype=torch.float32),
-                                    self.nn_mean, self.nn_std)
+            x = self.standardize(input_layer, self.nn_mean, self.nn_std)    
+            #x = self.standardize(torch.tensor(input_layer, dtype=torch.float32),
+                                    #self.nn_mean, self.nn_std)
             self._cffs = self.nn_model(x)[0]
             self.cffs_evaluated = True
         return self._cffs[self.cff_index] * pt.xB**(self.xpow)
@@ -338,7 +347,10 @@ class NeuralModel_DR(Model):
         #print("x ",x)
         #print("mean ",mean)
         if not isinstance(x, torch.Tensor):
-            x = torch.tensor(x)
+            x = torch.tensor(x, dtype=torch.float32)
+        elif isinstance(x, torch.Tensor):
+            x = x.clone().detach().float()
+
         y = x - mean
         y /= (std + 1e-7)
         return y
@@ -396,8 +408,9 @@ class NeuralModel_DR(Model):
             #print("input layer ",input_layer)
             #print(self.ImH)
             
-            x = self.standardize(torch.tensor(input_layer, dtype=torch.float32),
-                                    self.nn_mean, self.nn_std)
+            x = self.standardize(input_layer, self.nn_mean, self.nn_std)
+            #x = self.standardize(torch.tensor(input_layer, dtype=torch.float32),
+                                    #self.nn_mean, self.nn_std)
             
             # Make sure the CFF have three inputs as in DispersionFixedPoleCFF for example
             self.all_cffs_val = self.nn_model(x) #Make sure IM are at the start of the output and modeled list
@@ -482,8 +495,7 @@ class NeuralModel_DR(Model):
                 bad_indices.append(k)
         for k in bad_indices[::-1]:   # must delete backwards
             del self.nets[k]
-    
-
+            
     #def subtraction(self, pt): #This should use the NN, the real part will be calculated by the CFF_Dispersion methods
     #    """Subtraction constant."""
     #    return 0  # default
