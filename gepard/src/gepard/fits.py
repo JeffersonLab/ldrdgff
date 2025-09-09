@@ -43,7 +43,7 @@ CLAS08pts = data.select(data.dset[81], criteria=['FTn == -1'])[-3:]
 GLO15new = data.dset[94]+data.dset[95]+data.dset[96]+data.dset[101] + \
            data.dset[102]+data.dset[116]+data.dset[117]
 
-GLO15b = H1ZEUS + ALUIpts + ACpts + CLAS08pts + AULpts + ALLpts + AUTIpts + GLO15new
+GLO15b = H1ZEUS + ALUIpts + ACpts + AULpts + ALLpts + AUTIpts + CLAS08pts + GLO15new
 
 
 class KM09(eff.DipoleEFF, cff.DispersionFixedPoleCFF, dvcs.hotfixedBMK):  # noqa: D101

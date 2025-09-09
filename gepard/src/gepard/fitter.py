@@ -197,7 +197,27 @@ class CustomLoss(torch.nn.Module):
         # FIXME: Hard-wired factor 10 tuned to CLAS observables y range. Kludge.
         # return 10*torch.mean(torch.square((torch.stack(preds) - obs_true[:, 0]))/obs_true[:, 1])
         # Standard chisq. Do we doubly penalize the large-uncertainty points?
-        return torch.mean(torch.square((torch.stack(preds) - obs_true[:, 0])/obs_true[:, 1]))
+        return torch.mean(torch.square((torch.stack(preds) - obs_true[:, 0])/obs_true[:, 1]))  #<--- originly
+        #return torch.mean(torch.square(torch.stack(preds) - obs_true[:, 0]))  #<--- test 
+ 
+'''class CustomLoss(torch.nn.Module):
+    def __init__(self, fitpoints, theory, sigma_penalty=0.5):
+        self.fitpoints = fitpoints
+        self.theory = theory
+        self.sigma_penalty = sigma_penalty
+        super(CustomLoss, self).__init__()
+
+    def forward(self, cff_pred, obs_true):
+        preds = []
+        for cffs, id in zip(cff_pred, obs_true[:, -1]):
+            pt = self.fitpoints[int(id)]
+            preds.append(self.theory.predict_while_train(cffs, pt))
+        
+        mse = torch.mean(torch.square(torch.stack(preds) - obs_true[:, 0]))
+        penalty = self.sigma_penalty * torch.mean(torch.square(obs_true[:, 1]))
+        return mse + penalty '''
+
+
 
 
 #from gepard import data
@@ -250,11 +270,6 @@ class NeuralFitter(Fitter):
 				train_percentage=self.train_percentage, smear_replicas=self.smear_replicas,
                 q2in = self.theory.q2in)
         self.theory.nn_mean, self.theory.nn_std = self.theory.get_standard(x_train)
-        
-        # Store x_test and y_test in the instance for later use
-        self.x_test = x_test   # <-- ADDED: to call after training
-        self.y_test = y_test   # <-- ADDED: to call after training
-        
         x_train_standardized = self.theory.standardize(x_train,
                 self.theory.nn_mean, self.theory.nn_std)
         x_test_standardized = self.theory.standardize(x_test,
@@ -271,7 +286,7 @@ class NeuralFitter(Fitter):
         for k in range(1, self.nbatch+1):       
             for epoch in range(self.batchlen):
                 self.optimizer.zero_grad()
-                #cff_pred_1 = self.theory.nn_model(x_train_standardized) 
+                #cff_pred = self.theory.nn_model(x_train_standardized) 
                 #print("cff_pred 1", cff_pred_1)
                 cff_pred = self.theory.all_cffs(x_train) 
                 #print("cff_pred 2", cff_pred-cff_pred_1)
@@ -294,7 +309,7 @@ class NeuralFitter(Fitter):
 
                 # Compute test loss every epoch (not just at the end of the batch)    
                 #test_cff_pred = self.theory.nn_model(x_test_standardized)  
-                test_cff_pred = self.theory.all_cffs(x_test)
+                test_cff_pred = self.theory.all_cffs(x_test)    # <-- ADDED 
                 test_loss = float(self.criterion(test_cff_pred, y_test))
                 self.test_history.append(test_loss)  # <-- ADDED: Save test loss
 

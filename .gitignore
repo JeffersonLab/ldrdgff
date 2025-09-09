@@ -1,0 +1,24 @@
+# === SYSTEM FILES ===
+.DS_Store
+
+# === PYTHON CACHES ===
+__pycache__/
+*.pyc
+*.pyo
+
+# === NOTEBOOK AUTOFILES ===
+*.ipynb_checkpoints
+
+# === EXCLUDE SUBMODULE CONTENT ===
+gepardDevel/*
+!gepardDevel/.gitkeep
+
+gepardMaster/*
+!gepardMaster/.gitkeep
+
+
+# === Others ===
+
+#*.swp
+#*.swo
+

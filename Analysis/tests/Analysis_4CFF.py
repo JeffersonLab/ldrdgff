@@ -8,7 +8,7 @@ from datetime import timedelta
 
 import gepard as g  # NeuralModel with Dispersion relation added
 import gepard.plots as gplot
-from gepard.fits import GLO15new, AUTIpts, ALUIpts, ACpts, AULpts, ALLpts
+from gepard.fits import GLO15new, AUTIpts, ALUIpts, ACpts, AULpts, ALLpts, H_AULpts, H1ZEUS
 from gepard import data, dvcs, cff, model, fitter, theory
 
 from gmaster.fits import th_KM15 #, th_KM10b  # need KM15 for simulated data
@@ -39,8 +39,8 @@ params = {'text.latex.preamble' : '\n'.join([r'\usepackage{amssymb}', r'\usepack
 plt.rcParams.update(params)
 
 # Define file paths
-RESULTS_DIR = '/Users/higuera-admin/Documents/Programs/ldrdgff/Analysis/tests/Results/DR4CFF_CLAS+HERMES+TSA_BM10'
-FITS_DIR = '/Users/higuera-admin/Documents/Programs/ldrdgff/Analysis/tests/fits_models/DR4CFF_CLAS+HERMES+TSA_BM10'
+RESULTS_DIR = '/Users/higuera-admin/Documents/Programs/ldrdgff/Analysis/tests/Results/DR4CFF_HALLA_wq2'
+FITS_DIR = '/Users/higuera-admin/Documents/Programs/ldrdgff/Analysis/tests/fits_models/DR4CFF_HALLA_wq2'
 
 # Ensure directories exist
 os.makedirs(RESULTS_DIR, exist_ok=True)
@@ -58,17 +58,50 @@ from mydatafiles import ep2epgamma
 mydset = g.data.loaddata(mydatafiles)
 mydset.update(g.data.loaddata(ep2epgamma))
 
+############ Datasets ############
+# HALL A 
+HallA15_XLUw = g.dset.get(117,[])
+HallA15w = g.dset.get(117,[]) + g.dset.get(116,[])[:15] + g.dset.get(116,[])[15:] # 2015(BSDw+BSSw)
+HallA17w = g.dset.get(135,[]) + g.dset.get(136,[])[:22] + g.dset.get(136,[])[22:] # 2017(BSDw+BSSw)
+HallA6w = g.dset.get(50, []) + g.dset.get(51, []) + g.dset.get(105, []) # 2006(BSDw_byDM+BSSw+BSDovBSS)
+HALLAg = HallA15_XLUw + HallA15w + HallA17w
+# CLAS 
+CLASold = g.dset.get(101, []) + g.dset.get(102, []) + g.dset.get(8, []) + g.dset.get(81, []) + g.dset.get(94, []) + g.dset.get(95, []) + g.dset.get(96, [])
+CLAS23 = mydset.get(150, [])
+CLAS18XUUw = g.select(mydset.get(162, []), criteria=['FTn == 0']) + g.select(mydset.get(162, []), criteria=['FTn == 1']) + g.select(mydset.get(162, []), criteria=['FTn == 2'])
+CLAS18XLU = mydset.get(165, [])
+CLAS18 = CLAS18XUUw + CLAS18XLU
+CLAS25XUU = g.select(mydset.get(167, []), criteria=['FTn == 0']) #+ g.select(mydset.get(167, []), criteria=['FTn == 1']) #+ g.select(mydset.get(167, []), criteria=['FTn == 2'])
+# HERMES
+HERMES = ALUIpts + ACpts + H_AULpts + ALLpts + AUTIpts
 
 fitpoints = (
-	g.dset.get(101, []) + g.dset.get(102, []) + g.dset.get(8, []) 
-	+ g.dset.get(81, []) + g.dset.get(94, []) + g.dset.get(95, []) + g.dset.get(96, [])
-	+ mydset.get(182, []) + mydset.get(192, []) # + mydset.get(150, []) #cFT
-	+ ACpts+ AULpts + ALLpts 
-	+ mydset.get(251, [])
-	#+ g.dset.get(117, []) + g.dset.get(135, []) + g.dset.get(136, []) #HallA
+	#g.dset.get(101, []) + g.dset.get(102, []) + g.dset.get(8, [])
+    CLASold + CLAS18 #+ CLAS23 # + mydset.get(182, []) + mydset.get(192, []) #cFT
+    #+ CLAS25XUU
+    #+ HERMES
+	#+ mydset.get(251, [])  # CLAS_TSA
+	#+ HALLAg 
+	#+ H1ZEUS	# HERA
 )
 g.describe_data(fitpoints)
 
+###################  Fit without Dispersion Relation -> Previous NeuralModel fit   ###################
+class NNTest(g.model.NeuralModel, g.eff.DipoleEFF, g.dvcs.BM10):
+    def build_net(self):
+        '''Overriding the default architecture and optimizer'''
+        nn_model = torch.nn.Sequential(
+            torch.nn.Linear(3, 17),
+            torch.nn.ReLU(),
+            torch.nn.Linear(17, 25),
+            torch.nn.ReLU(),
+            torch.nn.Linear(25, 17),
+            torch.nn.ReLU(),
+            torch.nn.Linear(17, len(self.output_layer))
+        )
+        optimizer = torch.optim.Rprop(nn_model.parameters(), lr=0.01)
+        return nn_model, optimizer
+	
 
 
 ################# Customization for 4-CFF DR model ###################
@@ -77,13 +110,13 @@ class CustomNetwork(nn.Module):
 		super(CustomNetwork, self).__init__()
 
 		# Define the layers for the network
-		self.n1 = nn.Linear(2, 20)  # 2 input features, 20 hidden units
-		self.n2 = nn.Linear(20, 25) # 20 hidden units, 25 hidden units
-		self.n3 = nn.Linear(25, 2)  # 25 hidden units, 2 output units
+		self.n1 = nn.Linear(3, 25)  # 2 input features, 20 hidden units
+		self.n2 = nn.Linear(25, 35) # 20 hidden units, 25 hidden units
+		self.n3 = nn.Linear(35, 2)  # 25 hidden units, 2 output units
 
-		self.n1p = nn.Linear(1, 7)  # 1 input feature, 7 hidden units
-		self.n2p = nn.Linear(7, 5)  # 7 hidden units, 5 hidden units
-		self.n3p = nn.Linear(5, 1)  # 5 hidden units, 1 output unit
+		self.n1p = nn.Linear(1, 12)  # 1 input feature, 7 hidden units
+		self.n2p = nn.Linear(12, 10)  # 7 hidden units, 5 hidden units
+		self.n3p = nn.Linear(10, 1)  # 5 hidden units, 1 output unit
 
 	def forward(self, x):
 
@@ -97,7 +130,6 @@ class CustomNetwork(nn.Module):
 		# Build D network
 		# build the input tensor
 		x0_1 = torch.cat((x0[:,1].unsqueeze(1),), dim=0)
-
 		x2 = torch.relu(self.n1p(x0_1))
 		x2 = torch.relu(self.n2p(x2))
 		output2 = self.n3p(x2)
@@ -109,7 +141,7 @@ class CustomNetwork(nn.Module):
 
 
 # Define the 4-CFF DR model
-class NNTest_DR(g.model.NeuralModel_DR, g.eff.DipoleEFF, g.dvcs.BM10, g.cff.DispersionCFF):
+class NNTest_DR(g.model.NeuralModel_DR, g.eff.DipoleEFF, g.dvcs.BM10tw2, g.cff.DispersionCFF):
 	def build_net(self):
 		"""Overriding the default architecture and optimizer"""
 		nn_model = CustomNetwork()
@@ -147,14 +179,17 @@ class NNTest_DR(g.model.NeuralModel_DR, g.eff.DipoleEFF, g.dvcs.BM10, g.cff.Disp
 
 
 ############# Set up and run the ensemble fit ################
-ensembleSize = 2
+ensembleSize = 10
 
 def train_one(i):
 	print(f"Training DR model {i}/{ensembleSize}...")
 	start_1 = time.perf_counter()
 
-	th = NNTest_DR(output_layer=['ImH', 'ImE', 'D'])
+	th = NNTest_DR(output_layer=['ImH', 'ImE', 'D'], q2in=True)
 	th.name = f"Fit DR_{i}"
+
+	#th = NNTest(output_layer=['ImH', 'ReH', 'ReE', 'ImE'])
+	#th.name = "Fit No-DR_{i}" 
 
 	# Set unique random seed per model
 	#seed = np.random.randint(1, 1000)
@@ -165,7 +200,9 @@ def train_one(i):
 	#np.random.seed(seed)
 	#random.seed(seed)
 
-	f = g.fitter.NeuralFitter(fitpoints, th, nnets=5, nbatch=15, batchlen=5, regularization='L2', lx_lambda=0.0001)
+	#f = g.fitter.NeuralFitter(fitpoints, th, nnets=10, nbatch=10, batchlen=3, regularization='L2', lx_lambda=0.001)
+	#f = g.fitter.NeuralFitter(fitpoints, th, nnets=10, batchlen=10, regularization='L2', lx_lambda=0.01)  #HERMES
+	f = g.fitter.NeuralFitter(fitpoints, th, nnets=10, batchlen=10, regularization='L2', lx_lambda=0.002) #HALLA
 	f.fit()
 	print("saving model", i)
 
@@ -173,6 +210,7 @@ def train_one(i):
 	torch.save({
 		'nets': f.theory.nets,                         # needed for D-term and plots
 		'output_layer': f.theory.output_layer,         # helpful for inspecting or checking
+		'q2in': True,
 		'history': f.history,                          # for training performance plots
 		'test_history': f.test_history                 # for ensemble evaluation
 	}, os.path.join(FITS_DIR, f'nets_4CFFDR_{i}.pt'))

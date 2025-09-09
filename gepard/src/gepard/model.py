@@ -187,10 +187,11 @@ class NeuralModel(Model):
         return mean, std
 
     #def standardize(self, x, mean, std):
-     #   y = x - mean
-     #   y /= (std + 1e-7)
-     #   return y
+    #    y = x - mean
+    #    y /= (std + 1e-7)
+    #    return y
 
+    # UNCOMMENT THIS INSTEAD OF ABOVE
     def standardize(self, x, mean, std):
         if not isinstance(x, torch.Tensor):
             x = torch.tensor(x, dtype=torch.float32)
@@ -236,13 +237,16 @@ class NeuralModel(Model):
         
         if not self.cffs_evaluated or self.in_training:
             if self.q2in:
-                print("Not supported yet")
+                #print("Not supported yet")
+                Q2 = pt[:, 2].view(-1, 1)
+                input_layer = torch.hstack((xB, t, Q2))
             else:
                 input_layer = torch.hstack((xB, t))
-            
-            x = self.standardize(input_layer, self.nn_mean, self.nn_std)
+
+            # UNCOMMENT THIS INSTEAD OF BELOW
+            x = self.standardize(input_layer, self.nn_mean, self.nn_std)  # <----- This one was uncommented first
             #x = self.standardize(torch.tensor(input_layer, dtype=torch.float32),
-                                    #self.nn_mean, self.nn_std)
+            #                        self.nn_mean, self.nn_std)
             
             self.all_cffs_val = self.nn_model(x)
             
@@ -400,8 +404,9 @@ class NeuralModel_DR(Model):
         
         if not self.cffs_evaluated or self.in_training:
             if self.q2in:
-                print("Not supported yet")
-                #input_layer = torch.vstack(xB, t, Q2)
+                #print("Not supported yet")
+                Q2 = pt[:, 2].view(-1, 1)
+                input_layer = torch.hstack((xB, t, Q2))
             else:
                 input_layer = torch.hstack((xB, t))
             
@@ -421,11 +426,13 @@ class NeuralModel_DR(Model):
             return self.all_cffs_val * xB**(self.xpow)
     
     def cffs(self, index, pt, xi: Union[float, torch.Tensor] = 0):
-                
+        """Return the Compton Form Factor (CFF) for a given index and kinematic point."""        
         self.curname = self.output_layer[index]
         #print("In CFFs ",self.curname)
         #print("Xi ",xi)
         #print(type(xi))
+
+        # Handle xi conversion
         if isinstance(xi, torch.Tensor): #Copy from cff.py
             #print("Here in tensor case")
             # function was called with third argument that is xi nd array
@@ -444,16 +451,35 @@ class NeuralModel_DR(Model):
         if not self.cffs_evaluated:
             if isinstance(xi, torch.Tensor): #Copy from cff.py
                 #create a tensor with x and repeated values of t
-                input_layer = torch.hstack((xB.view(-1, 1), torch.full_like(xB.view(-1, 1), pt.t)))
+                if self.q2in:
+                    input_layer = torch.hstack((
+                        xB.view(-1, 1),
+                        torch.full_like(xB.view(-1, 1), pt.t),
+                        torch.full_like(xB.view(-1, 1), pt.Q2)
+                ))
+                else:
+                    input_layer = torch.hstack((
+                        xB.view(-1, 1),
+                        torch.full_like(xB.view(-1, 1), pt.t)
+                    ))    
             else:
-                input_layer = [xB, pt.t]
-            
+                if self.q2in:
+                    input_layer = [xB, pt.t, pt.Q2]  
+                else:
+                    input_layer = [xB, pt.t]
+
+            #if isinstance(xi, torch.Tensor): #Copy from cff.py
+                #create a tensor with x and repeated values of t
+            #    input_layer = torch.hstack((xB.view(-1, 1), torch.full_like(xB.view(-1, 1), pt.t)))
+            #else:
+            #    input_layer = [xB, pt.t]
+
             #print(input_layer)
             
             #x = self.standardize(torch.tensor(input_layer, dtype=torch.float32),
             #                        self.nn_mean, self.nn_std)
             
-            x = self.standardize(input_layer,
+            x = self.standardize(input_layer, 
                                     self.nn_mean, self.nn_std)
             
             #print("after standard stuff ",x)

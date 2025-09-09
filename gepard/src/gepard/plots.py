@@ -1795,7 +1795,7 @@ def CFF(cffs=['ImH', 'ReH'], path=None, fmt='png', **kwargs):
             ax = axs[n, 0]
         panel(ax, xaxis='xi', xs=xvals, kins={'observable':cff, 't':-0.2, 'Q2':4.,
         'units':{'CFF': 1}, 'observable': 'CFF'}, **kwargs)
-        ax.axhline(y=0, linewidth=0.5, color='k')  # y=0 thin line
+        ax.axhline(y=0, linewidth=0.5, color='k')  # y = 0 thin line
         try:
             ax.set_ylim(*ylims[cff])
             ax.set_ylabel(constants.toTeX['%s' % cff], fontsize=20)
@@ -1915,7 +1915,7 @@ def CFFt(cffs=['ImH', 'ReH'], path=None, fmt='png', **kwargs):
     fig = plt.figure(figsize=(12,4*len(cffs)))
     #fig.suptitle(title)
     # Define abscissas
-    tmvals = np.linspace(0.05, 0.7, 10) # right panel
+    tmvals = np.linspace(0.05, 0.5, 10) # right panel
     # ordinates
     #ylims = {'ImH': (-4.3, 35), 'ReH': (-6.5, 8),
     # Plot panels
@@ -1923,24 +1923,24 @@ def CFFt(cffs=['ImH', 'ReH'], path=None, fmt='png', **kwargs):
         cff = cffs[n]
         # smaller x
         ax = fig.add_subplot(len(cffs), 2, 2*n+1)
-        panel(ax, xaxis='tm', xs=tmvals, kins={'observable':cff, 'xB':0.1, 'Q2':2.,
+        panel(ax, xaxis='tm', xs=tmvals, kins={'observable':cff, 'xB':0.126, 'Q2':1.11,
            'units':{cff: 1},}, **kwargs)
         ax.set_xlabel(constants.toTeX['tm'], fontsize=18)
         try:
             ax.set_ylabel(constants.toTeX['%s' % cff], fontsize=18)
         except KeyError:
             pass
-        ax.axhline(y=0, linewidth=0.5, color='g')  # y=0 thin line
+        ax.axhline(y=0, linewidth=0.5, color='g')  # y = 0 thin line
         if n == 0:
             ax.legend(loc='upper right')
             ax.legend().draw_frame(0)
-            ax.text(0.35, 0.1, r"$x_B = 0.1$", transform=ax.transAxes,     #0.35, 0.91
+            ax.text(0.35, 0.15, r"$x_B = 0.126$", transform=ax.transAxes,     # 0.35, 0.91
                     fontsize=12)
-            ax.text(0.35, 0.0, r"$Q^2 = 2\, {\rm GeV}^2$", transform=ax.transAxes,     #0.35, 0.82
+            ax.text(0.35, 0.05, r"$Q^2 = 1.11\, {\rm GeV}^2$", transform=ax.transAxes,     # 0.35, 0.82
                     fontsize=12)
         # larger x
         ax = fig.add_subplot(len(cffs), 2, 2*n+2)
-        panel(ax, xaxis='tm', xs=tmvals, kins={'observable':cff, 'xB':0.2, 'Q2':4.,
+        panel(ax, xaxis='tm', xs=tmvals, kins={'observable':cff, 'xB':0.335, 'Q2':2.23,
             'units':{cff: 1}}, **kwargs)
         ax.set_xlabel(constants.toTeX['tm'], fontsize=18)
         try:
@@ -1951,9 +1951,9 @@ def CFFt(cffs=['ImH', 'ReH'], path=None, fmt='png', **kwargs):
         if n == 0:
             ax.legend(loc='upper right')
             ax.legend().draw_frame(0)
-            ax.text(0.35, 0.1, r"$x_B = 0.2$", transform=ax.transAxes,     #0.35, 0.91
+            ax.text(0.35, 0.15, r"$x_B = 0.335$", transform=ax.transAxes,     #0.35, 0.91
                     fontsize=12)
-            ax.text(0.35, 0.0, r"$Q^2 = 4\, {\rm GeV}^2$", transform=ax.transAxes,     #0.35, 0.82
+            ax.text(0.35, 0.05, r"$Q^2 = 2.23\, {\rm GeV}^2$", transform=ax.transAxes,     #0.35, 0.82
                     fontsize=12)
     fig.subplots_adjust(bottom=0.1)
     if path:
@@ -2090,3 +2090,71 @@ def CFF3log(cffs=['ImH', 'ReH', 'ImE', 'ReE', 'ImHt', 'ImEt'], tval=-0.2,
         #fig.show()
     return fig
 
+def CFFQ2(cffs=['ImH', 'ReH', 'ImE', 'ReE'],
+          path=None, fmt='png', **kwargs):
+    """
+    Plot CFFs as a function of Q² for fixed xB and t.
+
+    Parameters
+    ----------
+    cffs : list
+        List of CFFs to plot.
+    path : str or None
+        Directory to save the plot (if not None).
+    fmt : str
+        File format for saved figure.
+    kwargs : dict
+        Passed to `panel(...)`, e.g. lines=, bands=.
+
+    Returns
+    -------
+    fig : matplotlib Figure
+    """
+    # === User-defined parameters ===
+    xB = 0.2
+    tt = -0.3         # use 'tt' instead of 't' to avoid variable conflict
+    Q2range = (1.0, 6.0)
+    npoints = 40
+    title = 'CFFQ2'
+
+    # === Setup ===
+    Q2vals = np.linspace(Q2range[0], Q2range[1], npoints)
+    nrows = int(len(cffs) / 2)
+    fig, axs = plt.subplots(nrows, 2, figsize=[12, nrows * 3], sharex='col')
+
+    for pn, ax in enumerate(axs.flatten()):
+        cff = cffs[pn]
+        panel(ax, xaxis='Q2', xs=Q2vals,
+              kins={'observable': cff, 'xB': xB, 't': tt, 'units': {cff: 1}},
+              **kwargs)
+        ax.set_ylabel(constants.toTeX.get(cff, cff), fontsize=18)
+        ax.axhline(y=0, lw=0.5, color='g', ls='-')
+
+        for ticklabel in ax.get_xticklabels() + ax.get_yticklabels():
+            ticklabel.set_fontsize(16)
+
+        if pn >= 2*(nrows-1):
+            ax.set_xlabel(constants.toTeX['Q2'], fontsize=16)
+
+        if pn in [0, 1]:
+            ax.text(0.15, 0.93,
+                    r"$x_B = %.1f$" "\n" r"$t = %.1f\, {\rm GeV}^2$" % (xB, tt),
+                    transform=ax.transAxes,
+                    fontsize=12,
+                    va='top', ha='left')
+
+        if pn == 1:
+            leg = ax.legend(loc='lower right', handlelength=2.0)
+            for t in leg.get_texts():
+                t.set_fontsize(10)
+            for l in leg.get_lines():
+                l.set_linewidth(1.0)
+    
+    fig.subplots_adjust(hspace=0.0, wspace=0.25)
+
+    if path:
+        fig.savefig(os.path.join(path, title + '.' + fmt), format=fmt)
+    else:
+        fig.canvas.draw()
+
+    return fig
