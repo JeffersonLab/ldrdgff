@@ -71,27 +71,6 @@ g.describe_data(fitpoints)
 
 
 
-# Bin plot
-
-#Data = g.dset[101]
-#BSD = Data.df()  # CLAS 2015
-#tmlims = [0, 0.13, 0.18, 0.22, 0.3, 0.4, 0.5,0.6,0.7]
-#xilims = [0, 0.11, 0.13, 0.15, 0.17, 0.19, 0.21, 0.23, 0.26]
-#fig, ax = plt.subplots(figsize=[7, 6])
-#ax.scatter(BSD.xi, BSD.tm, s=10)
-#for tm in tmlims:
-#	ax.axhline(tm, color='g', linewidth=1, alpha=0.4)
-#for xi in xilims:
-#	ax.axvline(xi, color='g', linewidth=1, alpha=0.4)
-#ax.set_xlabel(r'$\xi$', fontsize=14)
-#ax.set_ylabel(r'$-t\quad[\rm{GeV}^2]$', fontsize=14)
-#plt.tight_layout()
-#plt.savefig(os.path.join(RESULTS_DIR, "xi_vs_t_CLAS2015.png"))
-#plt.close()
-
-
-
-
 ################# Customization for 4-CFF DR model ###################
 class CustomNetwork(nn.Module):
 	def __init__(self):
